@@ -1,33 +1,52 @@
 import { test, expect, Page } from '@playwright/test';
 import dotenv from 'dotenv';
 
-test.beforeEach(async() => {
-    dotenv.config();
 
-    // テストした回数を記録して、エビデンスフォルダを新しく切る　を実装したい
-})
+dotenv.config();
 
-test.afterAll(async({ page }) => {
-    page.close();
-})
+// test.beforeAll(async() => {
+//     // テストした回数を記録して、エビデンスフォルダを新しく切る　を実装したい
+// });
+
+// test.afterAll(async() => {
+
+// });
 
 test.describe('トップページ @home', () => {
-    test('タイトル確認', async ({ page }) => {
+    test('タイトル確認', async ({ page }, testInfo) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/', { waitUntil: 'domcontentloaded' });
-            // Expect a title "to contain" a substring.
+            // ある文字列を含むタイトルを期待値としたい場合、スラッシュで囲う
             await expect(page).toHaveTitle(/HOTEL PLANISPHERE /);
-            await page.screenshot({ path: 'screen-shots/タイトル確認.png', fullPage: true });
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
             await console.log('OK');
         }catch(error){
             console.error('An error occurred');
             throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
         }
     });
+
+    test('ログイン前ヘッダー確認', async({ page }) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/', { waitUntil: 'domcontentloaded' });
+            await expect(page.getByRole('link', { name: 'ホーム' })).toBeVisible();
+            await expect(page.getByRole('link', { name: '宿泊予約' })).toBeVisible();
+            await expect(page.getByRole('link', { name: '会員登録' })).toBeVisible();
+            await expect(page.getByRole('link', { name: 'マイページ' })).not.toBeVisible();
+            await expect(page.getByRole('button', { name: 'ログイン' })).toBeVisible();
+            await expect(page.getByRole('button', { name: 'ログアウト' })).not.toBeVisible();
+            await console.log('OK');
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+
 });
 
 test.describe('ログイン @login', () => {
-    test('ログイン画面', async ({ page }) => {
+    test('ログイン画面', async ({ page }, testInfo) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/', { waitUntil: 'domcontentloaded' });
             await page.getByRole('button',{ name: 'ログイン' }).click();
@@ -35,7 +54,7 @@ test.describe('ログイン @login', () => {
             await expect(page).toHaveTitle(/ログイン /);
             // Expect URL is correct./
             await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/login.html');
-            await page.screenshot({ path: 'screen-shots/ログイン画面.png', fullPage: true });
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
             await console.log('OK');
         }catch(error){
             console.error('An error occurred');
@@ -43,7 +62,7 @@ test.describe('ログイン @login', () => {
         }
     });
 
-    test('ログインエラー1:メールアドレス不正', async ({ page }) => {
+    test('ログインエラー1:メールアドレス不正', async ({ page }, testInfo) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/login.html', { waitUntil: 'domcontentloaded' });
             // メールアドレス形式不正は多岐にわたります。
@@ -51,7 +70,7 @@ test.describe('ログイン @login', () => {
             await page.getByLabel('メールアドレス').fill('ichiro@@example.com');
             await page.getByLabel('パスワード').fill(process.env.PASSWORD1 || '');
             await page.locator('#login-button').click();
-            await page.screenshot({ path: 'screen-shots/エラー画面_メールアドレス不正.png', fullPage: true });
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
             await expect(page.getByText('メールアドレスを入力してください。')).toBeVisible();
             await console.log('OK');
         }catch(error){
@@ -60,15 +79,15 @@ test.describe('ログイン @login', () => {
         }
     });
 
-    test('ログインエラー2:パスワード間違い', async ({ page }) => {
+    test('ログインエラー2:パスワード間違い', async ({ page }, testInfo) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/login.html', { waitUntil: 'domcontentloaded' });
             await page.getByLabel('メールアドレス').fill(process.env.MAIL1 || '');
-            await page.getByLabel('パスワード').fill('passwords');
+            await page.getByLabel('パスワード').fill(process.env.MAIL4 || '');
             await page.locator('#login-button').click();
-            await page.screenshot({ path: 'screen-shots/エラー画面_パスワード間違い.png', fullPage: true });
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
             // メッセージ文言が重複しているため、一例としてセレクターで区別してアサーションをとっています。
-            // getByTextだと、2つあって区別できないとエラーが返ります（うまいやり方があるかもしれない）
+            // getByTextだと、「2つあって区別できない」とエラーが返ります（うまいやり方があるかもしれない）
             await expect(page.locator('#email-message')).toHaveText('メールアドレスまたはパスワードが違います。');
             await expect(page.locator('#password-message')).toHaveText('メールアドレスまたはパスワードが違います。');
             await console.log('OK');
@@ -78,13 +97,13 @@ test.describe('ログイン @login', () => {
         }
     });
 
-    test('ログインエラー3:メールアドレス未入力', async ({ page }) => {
+    test('ログインエラー3:メールアドレス未入力', async ({ page }, testInfo) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/login.html', { waitUntil: 'domcontentloaded' });
             // await typing(page, 'メールアドレス', process.env.MAIL1 || '');
-            // await page.getByLabel('パスワード').fill(process.env.PASSWORD1 || '');
+            await page.getByLabel('パスワード').fill(process.env.PASSWORD1 || '');
             await page.locator('#login-button').click();
-            await page.screenshot({ path: 'screen-shots/エラー画面_メールアドレス未入力.png', fullPage: true });
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
             await expect(page.locator('#email-message')).toHaveText('このフィールドを入力してください。');
             await console.log('OK');
         }catch(error){
@@ -93,14 +112,14 @@ test.describe('ログイン @login', () => {
         }
     });
     
-    test('ログインエラー4:パスワード未入力', async ({ page }) => {
+    test('ログインエラー4:パスワード未入力', async ({ page }, testInfo) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/login.html', { waitUntil: 'domcontentloaded' });
-            await typing(page, 'メールアドレス', process.env.MAIL1 || '');
+            await page.getByLabel('メールアドレス').fill(process.env.MAIL1 || '');
             // await typing(page, 'パスワード', '');
             await page.locator('#login-button').click();
             await expect(page.locator('#password-message')).toHaveText('このフィールドを入力してください。');
-            await page.screenshot({ path: 'screen-shots/エラー画面_パスワード未入力.png', fullPage: true });
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
             await console.log('OK');
         }catch(error){
             console.error('An error occurred');
@@ -108,7 +127,7 @@ test.describe('ログイン @login', () => {
         }
     });
 
-    test('ログインエラー5:すべて未入力', async ({ page }) => {
+    test('ログインエラー5:すべて未入力', async ({ page }, testInfo) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/login.html', { waitUntil: 'domcontentloaded' });
             // await page.getByLabel('メールアドレス').fill(process.env.MAIL1 || '');
@@ -118,7 +137,7 @@ test.describe('ログイン @login', () => {
             // getByTextだと、2つあって区別できないとエラーが返ります（うまいやり方があるかもしれない）
             await expect(page.locator('#email-message')).toHaveText('このフィールドを入力してください。');
             await expect(page.locator('#password-message')).toHaveText('このフィールドを入力してください。');
-            await page.screenshot({ path: 'screen-shots/エラー画面_全未入力.png', fullPage: true });
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
             await console.log('OK');
         }catch(error){
             console.error('An error occurred');
@@ -126,12 +145,13 @@ test.describe('ログイン @login', () => {
         }
     });
 
-    test('ログイン成功1:プレミアム会員', async ({ page }) => {
+    test('ログイン成功1:プレミアム会員', async ({ page }, testInfo) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/login.html', { waitUntil: 'domcontentloaded' });
             await typing(page, 'メールアドレス', process.env.MAIL1 || '');
             await typing(page, 'パスワード', process.env.PASSWORD1 || '');
             await page.locator('#login-button').click();
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
             // Expect a title "to contain" a substring.
             await expect(page).toHaveTitle(/マイページ /);
             // Expect URL is correct.
@@ -146,12 +166,13 @@ test.describe('ログイン @login', () => {
         }  
     });
 
-    test('ログイン成功2:一般会員', async ({ page }) => {
+    test('ログイン成功2:一般会員', async ({ page }, testInfo) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/login.html', { waitUntil: 'domcontentloaded' });
             await typing(page, 'メールアドレス', process.env.MAIL2 || '');
             await typing(page, 'パスワード', process.env.PASSWORD2 || '');
             await page.locator('#login-button').click();
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
             // Expect a title "to contain" a substring.
             await expect(page).toHaveTitle(/マイページ /);
             // Expect URL is correct.
@@ -160,6 +181,29 @@ test.describe('ログイン @login', () => {
             await expect(page.locator('#email')).toHaveText('sakura@example.com');
             await expect(page.locator('#rank')).toHaveText('一般会員');
             await console.log('OK')
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+    test('ログイン後ヘッダー確認', async({ page }, testInfo) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/', { waitUntil: 'domcontentloaded' });
+            await page.getByRole('button',{ name: 'ログイン' }).click();
+            await page.getByLabel('メールアドレス').fill(process.env.MAIL3 || '');
+            await page.getByLabel('パスワード').fill(process.env.PASSWORD3 || '');
+            await page.locator('#login-button').click();
+            await page.getByRole('button', { name: 'ログアウト' }).waitFor({ state: "visible" });
+            await page.getByRole('link', { name: 'ホーム' }).click();
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
+            await expect(page.getByRole('link', { name: 'ホーム' })).toBeVisible();
+            await expect(page.getByRole('link', { name: '宿泊予約' })).toBeVisible();
+            await expect(page.getByRole('link', { name: '会員登録' })).not.toBeVisible();
+            await expect(page.getByRole('link', { name: 'マイページ' })).toBeVisible();
+            await expect(page.getByRole('button', { name: 'ログイン' })).not.toBeVisible();
+            await expect(page.getByRole('button', { name: 'ログアウト' })).toBeVisible();
+            await console.log('OK');
         }catch(error){
             console.error('An error occurred');
             throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
@@ -246,7 +290,7 @@ test.describe('会員登録 @signup', () => {
     test('メールアドレス入力', async ({ page }) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
-            await page.getByLabel('メールアドレス').fill(process.env.MAIL2 || '');
+            await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
             await console.log('OK');
         }catch(error){
             console.error('An error occurred');

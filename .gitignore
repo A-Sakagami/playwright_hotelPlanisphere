@@ -1,5 +1,7 @@
 node_modules/
+/screen-shots/
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+.env

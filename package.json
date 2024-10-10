@@ -1,0 +1,20 @@
+{
+  "name": "playwright_hoteldemosite",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "playwright:test": "npx playwright test",
+    "playwright:report": "npx playwright show-report",
+    "start": "ts-node main.ts",
+    "build": "tsc --build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.47.2",
+    "@types/node": "^22.7.5",
+    "dotenv": "^16.4.5"
+  }
+}

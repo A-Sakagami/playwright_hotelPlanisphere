@@ -246,6 +246,7 @@ test.describe('会員登録 @signup', () => {
     test('メールアドレス入力', async ({ page }) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            await page.getByLabel('メールアドレス').fill(process.env.MAIL2 || '');
             await console.log('OK');
         }catch(error){
             console.error('An error occurred');

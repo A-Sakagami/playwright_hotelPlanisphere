@@ -18,7 +18,7 @@ test.describe('トップページ @home', () => {
             await page.goto('https://hotel.testplanisphere.dev/ja/', { waitUntil: 'domcontentloaded' });
             // ある文字列を含むタイトルを期待値としたい場合、スラッシュで囲う
             await expect(page).toHaveTitle(/HOTEL PLANISPHERE /);
-            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png` });
             await console.log('OK');
         }catch(error){
             console.error('An error occurred');
@@ -287,10 +287,123 @@ test.describe('会員登録 @signup', () => {
         }
     });
 
-    test('メールアドレス入力', async ({ page }) => {
+    test('必須項目入力', async ({ page }) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
             await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
+            await page.locator('#password').fill(process.env.EDIT_PASSWORD || ''); 
+            await page.locator('#password-confirmation').fill(process.env.EDIT_PASSWORD || '');
+            await page.getByLabel('氏名').fill('坂上 太郎'); 
+            await page.locator('#signup-form > button').click();
+            await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/mypage.html');
+            await console.log('OK');
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+    test('項目全入力', async ({ page }) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
+            await page.locator('#password').fill(process.env.EDIT_PASSWORD || '');
+            await page.locator('#password-confirmation').fill(process.env.EDIT_PASSWORD || '');
+            await page.getByLabel('氏名').fill('坂上 太郎'); 
+            await page.locator('#signup-form > button').click();
+            await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/mypage.html');
+            await console.log('OK');
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+    test('エラー1:メールアドレス未入力', async ({ page }) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            await page.locator('#password').fill(process.env.EDIT_PASSWORD || '');
+            await page.locator('#password-confirmation').fill(process.env.EDIT_PASSWORD || '');
+            await page.getByLabel('氏名').fill('坂上 太郎'); 
+            await page.locator('#signup-form > button').click();
+            await expect(page.locator('#signup-form > div:nth-child(1) > div')).toBeVisible();
+            await console.log('OK');
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+    test('エラー2:パスワード未入力', async ({ page }) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
+            await page.locator('#password-confirmation').fill(process.env.EDIT_PASSWORD || '');
+            await page.getByLabel('氏名').fill('坂上 太郎'); 
+            await page.locator('#signup-form > button').click();
+            await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/mypage.html');
+            await console.log('OK');
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+    test('エラー3:パスワード確認未入力', async ({ page }) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
+            await page.locator('#password').fill(process.env.EDIT_PASSWORD || '');
+            await page.getByLabel('氏名').fill('坂上 太郎'); 
+            await page.locator('#signup-form > button').click();
+            await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/mypage.html');
+            await console.log('OK');
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+    test('エラー4:パスワード不一致', async ({ page }) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
+            await page.locator('#password').fill(process.env.EDIT_PASSWORD || '');
+            await page.locator('#password-confirmation').fill(process.env.PASSWORD1 || '');
+            await page.getByLabel('氏名').fill('坂上 太郎'); 
+            await page.locator('#signup-form > button').click();
+            await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/mypage.html');
+            await console.log('OK');
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+    test('エラー5:短いパスワード', async ({ page }) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
+            await page.locator('#password').fill(process.env.TOO_SHORT_PASSWORD || '');
+            await page.locator('#password-confirmation').fill(process.env.TOO_SHORT_PASSWORD || '');
+            await page.getByLabel('氏名').fill('坂上 太郎'); 
+            await page.locator('#signup-form > button').click();
+            await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/mypage.html');
+            await console.log('OK');
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+    test('エラー6:氏名未入力', async ({ page }) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
+            await page.locator('#password').fill(process.env.EDIT_PASSWORD || '');
+            await page.locator('#password-confirmation').fill(process.env.PASSWORD1 || '');
+            await page.locator('#signup-form > button').click();
+            await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/mypage.html');
             await console.log('OK');
         }catch(error){
             console.error('An error occurred');

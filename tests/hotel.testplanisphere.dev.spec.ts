@@ -2,6 +2,12 @@ import { test, expect, Page } from '@playwright/test';
 import dotenv from 'dotenv';
 
 
+/** 
+ * This site: Copyright (c) 2020-2021 Takeshi Kishi
+ * Testcode: sakagami@genz.jp
+*/
+
+
 dotenv.config();
 
 // test.beforeAll(async() => {
@@ -196,7 +202,7 @@ test.describe('ログイン @login', () => {
             await page.locator('#login-button').click();
             await page.getByRole('button', { name: 'ログアウト' }).waitFor({ state: "visible" });
             await page.getByRole('link', { name: 'ホーム' }).click();
-            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
+            await page.screenshot({ path: `screen-shots/${testInfo.title}.png`});
             await expect(page.getByRole('link', { name: 'ホーム' })).toBeVisible();
             await expect(page.getByRole('link', { name: '宿泊予約' })).toBeVisible();
             await expect(page.getByRole('link', { name: '会員登録' })).not.toBeVisible();
@@ -217,6 +223,7 @@ test.describe('ログイン @login', () => {
             await page.getByLabel('メールアドレス').fill(process.env.MAIL1 || '');
             await page.getByLabel('パスワード').fill(process.env.PASSWORD1 || '');
             await page.locator('#login-button').click();
+            
             // ログアウトボタン表示確認
             await expect(page.getByRole('button', {name: 'ログアウト'})).toBeVisible();
             await page.getByRole('button', {name: 'ログアウト'}).click();
@@ -233,13 +240,14 @@ test.describe('ログイン @login', () => {
 
 test.describe('マイページ @mypage', () => {
     test.describe('プレミアム会員 @premium', () => {
-        test('ログイン画面 - タイトル', async ({ page }) => {
+        test('ログイン画面 - タイトル', async ({ page }, testInfo) => {
             try{
                 // 改めてログイン操作
                 await page.goto('https://hotel.testplanisphere.dev/ja/login.html', { waitUntil: 'domcontentloaded' });
                 await page.getByLabel('メールアドレス').fill(process.env.MAIL1 || '');
                 await page.getByLabel('パスワード').fill(process.env.PASSWORD1 || '');
                 await page.locator('#login-button').click();
+                await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
                 // キー要素をチェック
                 await expect(page.locator('#email')).toHaveText('ichiro@example.com');
                 await expect(page.locator('#rank')).toHaveText('プレミアム会員');
@@ -252,13 +260,14 @@ test.describe('マイページ @mypage', () => {
     });
 
     test.describe('一般会員 @normal', () => {
-        test('ログイン画面 - タイトル', async ({ page }) => {
+        test('ログイン画面 - タイトル', async ({ page }, testInfo) => {
             try{
                 // 改めてログイン操作
                 await page.goto('https://hotel.testplanisphere.dev/ja/login.html', { waitUntil: 'domcontentloaded' });
                 await page.getByLabel('メールアドレス').fill(process.env.MAIL2 || '');
                 await page.getByLabel('パスワード').fill(process.env.PASSWORD2 || '');
                 await page.locator('#login-button').click();
+                await page.screenshot({ path: `screen-shots/${testInfo.title}.png`, fullPage: true });
                 // キー要素をチェック
                 await expect(page.locator('#email')).toHaveText('sakura@example.com');
                 await expect(page.locator('#rank')).toHaveText('一般会員');
@@ -306,10 +315,16 @@ test.describe('会員登録 @signup', () => {
     test('項目全入力', async ({ page }) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            // メールアドレス
             await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
+            // パスワード（8文字以上）
             await page.locator('#password').fill(process.env.EDIT_PASSWORD || '');
+            // パスワード確認
             await page.locator('#password-confirmation').fill(process.env.EDIT_PASSWORD || '');
-            await page.getByLabel('氏名').fill('坂上 太郎'); 
+            // 氏名
+            await page.getByLabel('氏名').fill('坂上 太郎');
+
+
             await page.locator('#signup-form > button').click();
             await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/mypage.html');
             await console.log('OK');
@@ -334,7 +349,7 @@ test.describe('会員登録 @signup', () => {
         }
     });
 
-    test('エラー2:パスワード未入力', async ({ page }) => {
+    test('エラー2.1:パスワード未入力', async ({ page }) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
             await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
@@ -349,7 +364,7 @@ test.describe('会員登録 @signup', () => {
         }
     });
 
-    test('エラー3:パスワード確認未入力', async ({ page }) => {
+    test('エラー2.2:パスワード確認未入力', async ({ page }) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
             await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
@@ -364,7 +379,7 @@ test.describe('会員登録 @signup', () => {
         }
     });
 
-    test('エラー4:パスワード不一致', async ({ page }) => {
+    test('エラー2.3:パスワード不一致', async ({ page }) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
             await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
@@ -380,7 +395,7 @@ test.describe('会員登録 @signup', () => {
         }
     });
 
-    test('エラー5:短いパスワード', async ({ page }) => {
+    test('エラー2.4:短いパスワード', async ({ page }) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
             await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
@@ -396,7 +411,37 @@ test.describe('会員登録 @signup', () => {
         }
     });
 
-    test('エラー6:氏名未入力', async ({ page }) => {
+    test('エラー3:氏名未入力', async ({ page }) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
+            await page.locator('#password').fill(process.env.EDIT_PASSWORD || '');
+            await page.locator('#password-confirmation').fill(process.env.PASSWORD1 || '');
+            await page.locator('#signup-form > button').click();
+            await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/mypage.html');
+            await console.log('OK');
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+    test('エラー4.1:電話番号10桁', async ({ page }) => {
+        try{
+            await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
+            await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
+            await page.locator('#password').fill(process.env.EDIT_PASSWORD || '');
+            await page.locator('#password-confirmation').fill(process.env.PASSWORD1 || '');
+            await page.locator('#signup-form > button').click();
+            await expect(page).toHaveURL('https://hotel.testplanisphere.dev/ja/mypage.html');
+            await console.log('OK');
+        }catch(error){
+            console.error('An error occurred');
+            throw new Error(`次の理由により、テストに失敗しました: ${error.message}`);
+        }
+    });
+
+    test('エラー4.2:電話番号12桁', async ({ page }) => {
         try{
             await page.goto('https://hotel.testplanisphere.dev/ja/signup.html', { waitUntil: 'domcontentloaded' });
             await page.getByLabel('メールアドレス').fill(process.env.EDIT_MAIL || '');
